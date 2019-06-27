@@ -75,6 +75,30 @@
     }
 
     if (data != nil) {
+        //Handling unsafe json characters https://www.oipapio.com/question-50567
+        if([data isKindOfClass:[NSString class]] && [(NSString *)data length] > 0){
+            NSMutableCharacterSet *unsafeSet = [NSMutableCharacterSet new];
+            void (^addUnsafe)(NSInteger, NSInteger) = ^(NSInteger from, NSInteger to) {
+                if (to > from) {
+                    [unsafeSet addCharactersInRange:NSMakeRange(from, (to - from) + 1)];
+                } else {
+                    [unsafeSet addCharactersInRange:NSMakeRange(from, 1)];
+                }
+            };
+            addUnsafe(0x0000, 0x001f);
+            addUnsafe(0x007f, 0x009f);
+            addUnsafe(0x00ad, 0);
+            addUnsafe(0x0600, 0x0604);
+            addUnsafe(0x070f, 0);
+            addUnsafe(0x17b4, 0);
+            addUnsafe(0x17b5, 0);
+            addUnsafe(0x200c, 0x200f);
+            addUnsafe(0x2028, 0x202f);
+            addUnsafe(0x2060, 0x206f);
+            addUnsafe(0xfeff, 0);
+            addUnsafe(0xfff0, 0xffff);
+            data = [[data componentsSeparatedByCharactersInSet:unsafeSet] componentsJoinedByString:@""];
+        }
         [dictionary setObject:data forKey:@"data"];
     }
 }
